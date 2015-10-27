@@ -8,9 +8,11 @@ int main() {
 	init_pair(PLAYER2, COLOR_GREEN, COLOR_BLACK);	
 	init_pair(3, COLOR_BLUE, COLOR_BLACK);
 	init_pair(4, COLOR_WHITE, COLOR_BLACK);
-	init_pair(5, COLOR_CYAN, COLOR_BLACK);											
+	init_pair(5, COLOR_CYAN, COLOR_BLACK);	
+	init_pair(6, COLOR_MAGENTA, COLOR_BLACK);
+	init_pair(7, COLOR_YELLOW, COLOR_BLACK);										
 	
-	attrset(COLOR_PAIR(3));
+	attrset(COLOR_PAIR(7));
 	attron(A_BOLD);	
 	int row, column, r, c;
 	int x, y;
@@ -21,13 +23,13 @@ int main() {
 	y = (LINES) / 2;
 	move(y, x);
 	noecho();
-	attrset(A_UNDERLINE);
+	attron(A_UNDERLINE);
 	refresh();		
 	
 	i = 0;
 	char *p = &title[0];
 	while(*p) {
-		addch(*p);
+		printw("%c", *p);
 		refresh();
 		napms(100);
 		p++;
@@ -39,81 +41,139 @@ int main() {
 	deleteln();
 	
 	g = printmenu();
-	if(g == 1) {
-		clear();
-		attrset(COLOR_PAIR(4));
-		x = (COLS - 36) / 2;
-		y = (LINES) / 2;
-		move(y, x);
-		printw("Enter no of rows and columns : ");
-		refresh();
-		scanw("%d%d", &row, &column);
-		refresh();
-		move(y, x);
-		deleteln();
-		refresh();
-	
-		int grid[row][column];
-		init(&grid[0][0], row, column);	
-	
-		int flag[row][column];
-		initflag(&flag[0][0], row, column);			//
-	
-		attrset(COLOR_PAIR(4));	
-		display(&grid[0][0], row, column, &flag[0][0]);
-	
-		x = (COLS - 60) / 2;
-		y = (LINES) - 3;
-		pcount = PLAYER1;
-		cw = 0;
-		i = 0;
-		while(1) {
-			move(y, x);
-			attrset(COLOR_PAIR(pcount));
-			printw("Enter row and column at which element is to be placed: ");
-			refresh();
-			scanw("%d%d", &r, &c);
-		
-			if(r <= 0 || r > row || c <= 0 || c > column) {
-				move(y, x);
-				clrtoeol();
+	while(g != 2) {	
+		if(g == 1) {
+			FILE *fp;
+			fp = fopen("instructions.txt", "r");
+			if(fp == NULL) {
+				clear();
+				g = printmenu();
 				continue;
 			}
-		
-			//select(row, column);
+			int i = 0, j = 0;
+			char line[16][64];
+			char string[128];
+			while(fread(&line[i][j], sizeof(char), 1, fp)) {
+				while(line[i][j] != '\n') {
+					j++;
+					fread(&line[i][j], sizeof(char), 1, fp);
+				}	
+				line[i][j] = '\0';
+				i++;
+				j = 0;
+			}
+			fclose(fp);
 			
-			chk = check(&flag[0][0], row, column, r - 1, c - 1);
-			if(chk == pcount || chk == 0) {
-				place(&grid[0][0], row, column, r - 1, c - 1, &flag[0][0]);
-				if(pcount == PLAYER1) {
-					pcount = PLAYER2;
+			clear();
+			x = (COLS - 12) / 2;
+			y = (LINES - 33) / 2;
+			move(y, x);
+			attrset(COLOR_PAIR(7));
+			attron(A_UNDERLINE);
+			attron(A_BOLD);
+			printw("INSTRUCTIONS"); 
+			attroff(A_UNDERLINE);
+			x = (COLS - 60) / 2;
+			y = y + 3;
+			attrset(COLOR_PAIR(5));
+			for(i = 0; i < 15; i++) {
+				move(y, x);
+				if(i >= 11) {
+					attrset(COLOR_PAIR(PLAYER2));
+					if(i == 11) {
+						attron(A_UNDERLINE);
+					}
 				}
-				else {
-					pcount = PLAYER1;
-					cw++;
-				}
-			}	
-			display(&grid[0][0], row, column, &flag[0][0]);
+				printw("%s", line[i]);
+				attroff(A_UNDERLINE);
+				y = y + 2;
+			}
+		}	
+			
+		if(g == 0) {
+			clear();
+			attrset(COLOR_PAIR(4));
+			x = (COLS - 36) / 2;
+			y = (LINES) / 2;
+			move(y, x);
+			printw("Enter no of rows and columns : ");
+			refresh();
+			scanw("%d%d", &row, &column);
 			refresh();
 			move(y, x);
-			clrtoeol();
-			if((playerwon = checkwon(&flag[0][0], row, column)) && cw > 1) {
-				break;
-			}
+			deleteln();
 			refresh();
+	
+			int grid[row][column];
+			init(&grid[0][0], row, column);	
+	
+			int flag[row][column];
+			initflag(&flag[0][0], row, column);			//
+	
+			attrset(COLOR_PAIR(4));	
+			display(&grid[0][0], row, column, &flag[0][0]);
+	
+			x = (COLS - 60) / 2;
+			y = (LINES) - 8;
+			pcount = PLAYER1;
+			cw = 0;
+			i = 0;
+			while(1) {
+				move(y, x);
+				attrset(COLOR_PAIR(pcount));
+				printw("Enter row and column at which element is to be placed: ");
+				refresh();
+				scanw("%d%d", &r, &c);
+		
+				if(r <= 0 || r > row || c <= 0 || c > column) {
+					move(y, x);
+					clrtoeol();
+					continue;
+				}
+			
+				chk = check(&flag[0][0], row, column, r - 1, c - 1);
+				if(chk == pcount || chk == 0) {
+					place(&grid[0][0], row, column, r - 1, c - 1, &flag[0][0]);
+					if(pcount == PLAYER1) {
+						pcount = PLAYER2;
+					}
+					else {
+						pcount = PLAYER1;
+						cw++;
+					}
+				}	
+				display(&grid[0][0], row, column, &flag[0][0]);
+				refresh();
+				move(y, x);
+				clrtoeol();
+				if((playerwon = checkwon(&flag[0][0], row, column)) && cw > 0) {
+					break;
+				}
+				refresh();
+			}
+			move(y, x);
+			clrtoeol();
+			x = (COLS - 15) / 2;
+			move(y, x);
+			attrset(COLOR_PAIR(playerwon));
+			attron(A_BOLD);
+			printw("PLAYER %d ", playerwon);
+			attroff(A_BOLD);
+			attrset(COLOR_PAIR(4));
+			printw("WON!!!");
 		}
-		move(y, x);
-		clrtoeol();
-		x = (COLS - 15) / 2;
-		move(y, x);
-		attrset(COLOR_PAIR(playerwon));
-		printw("PLAYER %d ", playerwon);
-		attrset(COLOR_PAIR(4));
-		printw("WON!!!");
-		getch();
+	
+	x = (COLS - 31) / 2;
+	y = (LINES) - 3;
+	move(y, x);
+	attrset(COLOR_PAIR(7));
+	printw("Press any key to return to menu");
+	getch();
+		
+	clear();
+	g = printmenu();
 	}
 	
-	//getch();
 	endwin();
 	return 0;	
 }

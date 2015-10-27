@@ -13,18 +13,34 @@ void init(int *grid, int row, int column) {			//initializes all the elements in 
 
 void display(int *grid, int row, int column, int *flag) {			//displays the grid
 	int count = 0, chk;
-	int x, y, indent, i = 0;
-	indent = (COLS - (4 * (column - 1) + 1)) / 2;
+	int x, y, indent, xindent, i = 0;
+	indent = (COLS - (4 * (column - 1) + 4)) / 2;	
 	x = indent;
-	y = ((LINES - (2 * (row - 1) + 1)) / 2);
+	y = ((LINES - (2 * (row - 1) + 1) - 8) / 2);			
 	move(y, x);
+	
+	y = y - 1;
+	x = x + 1;
+	attrset(COLOR_PAIR(5));
+	x = x + 4;
+	for(i = 1; i <= row; i++) {
+		move(y, x);
+		printw("%d", i);
+		x = x + 4;
+	}
+	xindent = indent + 5;
+	x = xindent;
+	y = y + 2;
+	i = 1;
+	
 	attrset(COLOR_PAIR(4));
-	//attron(A_REVERSE);
 	while(count < row * column) {
 		move(y, x);
+		attrset(COLOR_PAIR(4));
 		if(*grid) {
 			chk = *flag;
 			attrset(COLOR_PAIR(chk));
+			attron(A_BOLD);
 			printw("%d", *grid);
 			x = x + 4;
 			refresh();
@@ -33,19 +49,18 @@ void display(int *grid, int row, int column, int *flag) {			//displays the grid
 			printw("_");
 			x = x + 4;
 			refresh();
-			//attrset(COLOR_PAIR(pcount));
 		}
-		attrset(COLOR_PAIR(4));
-		if(i == 0) {
-			//attroff(A_REVERSE);
-			i++;
-		}
+		
 		grid++;
 		flag++;
 		count++;
 		if(count % column == 0) {
+			move(y, indent);
+			attrset(COLOR_PAIR(5));
+			printw("%d", i);
+			i++;
 			y = y + 2;
-			x = indent;
+			x = xindent;
 			refresh();
 		}
 	}
@@ -99,14 +114,12 @@ void place(int *grid, int row, int column, int r, int c, int *flag) {
 }
 
 void expand(int *grid, int *flag) {						//increase the no. of elements at grid[r][c] by 1;
-	napms(100);
 	(*grid)++;		
 	*flag = pcount;					//		
 }
 
 
 void explode(int *grid, int row, int column, int r, int c, int *flag) {				//grid[row][column] contains 3 elements
-	napms(100);
 	int *p = grid;
 	int *q = flag;					//		
 	
@@ -124,109 +137,19 @@ void explode(int *grid, int row, int column, int r, int c, int *flag) {				//gri
 	
 	(*grid) = 0;
 	(*flag) = 0;					//
-	
-	napms(100);	
+		
 	place(p, row, column, r - 1, c, q);				//place an element at grid[r - 1][c];
 	place(p, row, column, r, c + 1, q);				//place an element at grid[r][c + 1];
 	place(p, row, column, r + 1, c, q);				//place an element at grid[r + 1][c];
 	place(p, row, column, r, c - 1, q);				//place an element at grid[r][c - 1];
-	
 }
 
-/*
-void select(int row, int column) {
-	int x, y, indent, i = 0;
-	int ch;
-	//char c;
-	indent = (COLS - (4 * (column - 1) + 1)) / 2;
-	x = indent;
-	y = ((LINES - (2 * (row - 1) + 1)) / 2);
-	move(y, x);
-	keypad(stdscr, TRUE);
-	noecho();
-	do {
-		//scanw("%d", &c);
-		ch = getch();
-		//ch = 's';//KEY_DOWN;
-		switch(ch) {
-			case KEY_DOWN:
-				attroff(A_REVERSE);
-				y = y + 2;
-				move(y, x);
-				attron(A_REVERSE);
-				break;
-			
-			case KEY_UP:
-				attroff(A_REVERSE);
-				y = y - 2;
-				move(y, x);
-				attron(A_REVERSE);
-				break;	
-				
-			case KEY_RIGHT:
-				attroff(A_REVERSE);
-				x = x + 4;
-				move(y, x);
-				attron(A_REVERSE);
-				break;	
-				
-			case KEY_LEFT:
-				attroff(A_REVERSE);
-				x = x - 4;
-				move(y, x);
-				attron(A_REVERSE);
-				break;	
-				
-			default : 
-				break;
-		}
-		refresh();
-	}while(ch != '\n');
-	echo();
-}	
-*/
 void initflag(int *flag, int row, int column) {
 	int count = 0;
 	while(count < row * column) {
 		*flag = 0;
 		flag++;
 		count++;
-	}
-}
-
-void displayflag(int *flag, int row, int column) {			//displays the grid
-	int count = 0;
-	int x, y, indent, i = 0;
-	indent = (COLS - (4 * (column - 1) + 1)) / 2;
-	indent = indent + 20;					//to be removed
-	x = indent;
-	y = ((LINES - (2 * (row - 1) + 1)) / 2);
-	move(y, x);
-	//attron(A_REVERSE);
-	while(count < row * column) {
-		move(y, x);
-		//if(*grid) {
-			printw("%d", *flag);
-			x = x + 4;
-		/*	refresh();
-		}
-		else {
-			printw("_");
-			x = x + 4;
-			refresh();
-		}
-		if(i == 0) {
-			attroff(A_REVERSE);
-			i++;
-		}*/
-		flag++;
-		count++;
-		if(count % column == 0) {
-			//printw("\n\n\t\t");
-			y = y + 2;
-			x = indent;
-			refresh();
-		}
 	}
 }
 
@@ -274,8 +197,30 @@ int checkwon(int *flag, int row, int column) {
 
 #define X ((COLS - strlen(menu[c])) / 2)
 int printmenu() {
-	char menu[3][16] = {"PLAY",  "INSTRUCTIONS", "EXIT"};
 	int key, menuitem = 0, c, x, y;
+	
+	attrset(COLOR_PAIR(4));
+	x = (COLS - 36) / 2;
+	y = (LINES) - 5;
+	move(y, x);
+	printw("Use UP or DOWN arrow key to navigate");
+	x = (COLS - 21) / 2;
+	y = y + 2;
+	move(y, x);
+	printw("Press ENTER to select");
+	
+	attrset(COLOR_PAIR(7));
+	x = (COLS - 7) / 2;
+	y = 10;
+	move(y, x);
+	attron(A_UNDERLINE);
+	attron(A_BOLD);
+	printw("M E N U");
+	attroff(A_UNDERLINE);
+	
+	attrset(COLOR_PAIR(5));
+	attron(A_BOLD);
+	char menu[3][16] = {"PLAY",  "INSTRUCTIONS", "EXIT"};
 	x = (COLS - 40) / 2;
 	y = (LINES - 5) / 2;
 	for(c = 0;c < 3; c++) {
@@ -285,7 +230,7 @@ int printmenu() {
 		mvaddstr(y + (c * 2), X, menu[c]);
 		attroff(A_REVERSE);
 	}
-	keypad(stdscr,TRUE);
+	keypad(stdscr, TRUE);
 	noecho();
 	do {
 		key = getch();
@@ -317,12 +262,7 @@ int printmenu() {
 
 	} while(key != '\n');
 	echo();
-	if(menuitem == 0) {
-		return 1;
-	}
-	else {
-		return 0;
-	}
+	return menuitem;
 }
 
 
