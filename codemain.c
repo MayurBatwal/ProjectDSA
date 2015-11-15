@@ -1,5 +1,21 @@
+/*****************************************************************************
+ * Copyright (C) Mayur.S.Batwal mayur.batwal@gmail.com
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ ***************************************************************************/
+
+
 #include <ncurses.h>
 #include "code.h"
+
 int main() {
 	initscr();
 	start_color();	
@@ -40,9 +56,10 @@ int main() {
 	move(y, x);
 	deleteln();
 	
-	g = printmenu();
+	g = printmenu();				//displays the menu
 	while(g != 2) {	
 		if(g == 1) {
+			/*opens the "instuctions.txt" file and displays the instructions on the screen*/
 			FILE *fp;
 			fp = fopen("instructions.txt", "r");
 			if(fp == NULL) {
@@ -91,6 +108,7 @@ int main() {
 		}	
 			
 		if(g == 0) {
+			/*the game starts*/
 			clear();
 			attrset(COLOR_PAIR(4));
 			x = (COLS - 36) / 2;
@@ -104,10 +122,10 @@ int main() {
 			deleteln();
 			refresh();
 	
-			int grid[row][column];
+			int grid[row][column];		//creats a 2-d array of size row * column
 			init(&grid[0][0], row, column);	
 	
-			int flag[row][column];
+			int flag[row][column];		//creats a 2-d array of size row * column
 			initflag(&flag[0][0], row, column);			//
 	
 			attrset(COLOR_PAIR(4));	
@@ -126,14 +144,18 @@ int main() {
 				scanw("%d%d", &r, &c);
 		
 				if(r <= 0 || r > row || c <= 0 || c > column) {
+					/*doesn't accept invalid positions*/
 					move(y, x);
 					clrtoeol();
 					continue;
 				}
 			
+				/*checks if player is allowed to place the element*/
 				chk = check(&flag[0][0], row, column, r - 1, c - 1);
 				if(chk == pcount || chk == 0) {
 					place(&grid[0][0], row, column, r - 1, c - 1, &flag[0][0]);
+					
+					/*changes the player's turn*/
 					if(pcount == PLAYER1) {
 						pcount = PLAYER2;
 					}
@@ -146,6 +168,7 @@ int main() {
 				refresh();
 				move(y, x);
 				clrtoeol();
+				/*checks if the game ends*/
 				if((playerwon = checkwon(&flag[0][0], row, column)) && cw > 0) {
 					break;
 				}

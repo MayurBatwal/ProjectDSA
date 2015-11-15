@@ -1,3 +1,17 @@
+/*****************************************************************************
+ * Copyright (C) Mayur.S.Batwal mayur.batwal@gmail.com
+ *
+ * This program is free software; you can redistribute it and/or modify it
+ * under the terms of the GNU Lesser General Public License as published by
+ * the Free Software Foundation; either version 2.1 of the License, or
+ * (at your option) any later version.
+ *
+ * This program is distributed in the hope that it will be useful,
+ * but WITHOUT ANY WARRANTY; without even the implied warranty of
+ * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE. See the
+ * GNU Lesser General Public License for more details.
+ ***************************************************************************/
+
 #include <ncurses.h>
 #include "code.h"
 #include <string.h>
@@ -68,26 +82,28 @@ void display(int *grid, int row, int column, int *flag) {			//displays the grid
 
 void place(int *grid, int row, int column, int r, int c, int *flag) {
 	if(r < 0 || r >= row || c < 0 || c >= column) {
+		/*returns if the element to be placed is outside the boundaries of the grid*/
 		return;
 	} 
 	
 	
 	int *p = grid;
-	int *q = flag;					//	
+	int *q = flag;						
 	
 	int i, j;
 	for(i = 0; i < r; i++) {
 		for(j = 0; j < column; j++) {
 			grid++;
-			flag++;				//			
+			flag++;							
 		}
 	}
 	for(i = 0; i < c; i++) {
 		grid++;
-		flag++;				//		
+		flag++;						
 	}
 	
 	if(r == 0 || r == row - 1 || c == 0 || c == column - 1) {
+		/*element to be placed at the corners*/
 		if((r == 0 && c == 0) || (r == row - 1 && c == 0) || (r == 0 && c == column - 1) || (r == row - 1 && c == column - 1)) {
 			if(*grid == 0) {
 				expand(grid, flag);
@@ -96,6 +112,7 @@ void place(int *grid, int row, int column, int r, int c, int *flag) {
 				explode(p, row, column, r, c, q);
 			}
 		}
+		/*element to be placed at the edges*/
 		else {
 			if(*grid == 0 || *grid == 1) {
 				expand(grid, flag);
@@ -105,6 +122,7 @@ void place(int *grid, int row, int column, int r, int c, int *flag) {
 			}
 		}
 	}
+	/*element to be placed in the inner cells*/
 	else if(*grid == 0 || *grid == 1 || *grid == 2) {
 		expand(grid, flag);
 	}
@@ -113,30 +131,30 @@ void place(int *grid, int row, int column, int r, int c, int *flag) {
 	}
 }
 
-void expand(int *grid, int *flag) {						//increase the no. of elements at grid[r][c] by 1;
+void expand(int *grid, int *flag) {				//increases the no. of elements at grid[r][c] by 1;
 	(*grid)++;		
-	*flag = pcount;					//		
+	*flag = pcount;							
 }
 
 
-void explode(int *grid, int row, int column, int r, int c, int *flag) {				//grid[row][column] contains 3 elements
+void explode(int *grid, int row, int column, int r, int c, int *flag) {		//grid[row][column] contains 3 elements
 	int *p = grid;
-	int *q = flag;					//		
+	int *q = flag;							
 	
 	int i, j;
 	for(i = 0; i < r; i++) {
 		for(j = 0; j < column; j++) {
 			grid++;
-			flag++;				//			
+			flag++;							
 		}
 	}
 	for(i = 0; i < c; i++) {
 		grid++;
-		flag++;				//
+		flag++;				
 	}	
 	
 	(*grid) = 0;
-	(*flag) = 0;					//
+	(*flag) = 0;					
 		
 	place(p, row, column, r - 1, c, q);				//place an element at grid[r - 1][c];
 	place(p, row, column, r, c + 1, q);				//place an element at grid[r][c + 1];
@@ -144,7 +162,7 @@ void explode(int *grid, int row, int column, int r, int c, int *flag) {				//gri
 	place(p, row, column, r, c - 1, q);				//place an element at grid[r][c - 1];
 }
 
-void initflag(int *flag, int row, int column) {
+void initflag(int *flag, int row, int column) {			//initializes all the elements in the flag to 0
 	int count = 0;
 	while(count < row * column) {
 		*flag = 0;
@@ -154,14 +172,15 @@ void initflag(int *flag, int row, int column) {
 }
 
 int check(int *flag, int row, int column, int r, int c) {
+	/*checks the element flag[r][c] and returns the corresponding number*/
 	int i, j;
 	for(i = 0; i < r; i++) {
 		for(j = 0; j < column; j++) {
-			flag++;				//			
+			flag++;							
 		}
 	}
 	for(i = 0; i < c; i++) {
-		flag++;				//		
+		flag++;						
 	}
 
 	if(*flag == 1) {
@@ -174,6 +193,9 @@ int check(int *flag, int row, int column, int r, int c) {
 }
 
 int checkwon(int *flag, int row, int column) {
+	/*checks if flag contains elements of only one player
+		if yes, returns the corresponding number
+		else returns 0*/
 	int player, count = 0;
 	while(count < row * column) {
 		if(*flag) {
@@ -197,6 +219,7 @@ int checkwon(int *flag, int row, int column) {
 
 #define X ((COLS - strlen(menu[c])) / 2)
 int printmenu() {
+	/*displays the menu on the screen*/
 	int key, menuitem = 0, c, x, y;
 	
 	attrset(COLOR_PAIR(4));
@@ -230,6 +253,8 @@ int printmenu() {
 		mvaddstr(y + (c * 2), X, menu[c]);
 		attroff(A_REVERSE);
 	}
+	
+	/*returns 0, 1 or 2 depending on the option selected*/
 	keypad(stdscr, TRUE);
 	noecho();
 	do {
