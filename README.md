@@ -1,6 +1,3 @@
-TITLE : ProjectDSA - chain reaction (game)
-
-MIS ID : 111408007
 
 DESCRIPTION : 
 	
